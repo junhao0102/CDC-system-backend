@@ -24,10 +24,10 @@ async function login(req: AuthRequest, res: Response) {
       },
     });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Invalid user name or password" });
+      return res.status(401).json({ message: "Invalid user name or password",key:"password" });
     }
-    if (!user.is_verified) {
-      return res.status(401).json({ message: "Please check your inbox to verify your email" });
+    if (user.is_verified) {
+      return res.status(401).json({ message: "Please check your inbox to verify your email" ,key:"email"});
     }
 
     const token = jwt.sign(
