@@ -30,3 +30,14 @@ model User {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
+
+model Activity {
+  id            Int      @id @default(autoincrement())
+  activity_name String
+  date          String // YYYY-MM-DD
+  start_time    String // hh:mm
+  end_time      String // hh:mm
+  qr_code       String   @unique @default(uuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
