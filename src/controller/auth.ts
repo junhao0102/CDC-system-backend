@@ -58,7 +58,7 @@ async function me(req: Request, res: Response) {
   if (!req.session.userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-  res.json({ userId: req.session.userId , role: req.session.role});
+  res.json({ userId: req.session.userId, role: req.session.role });
 }
 
 async function logout(req: Request, res: Response) {
