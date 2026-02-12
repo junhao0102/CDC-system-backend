@@ -1,13 +1,10 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { ZodError } from "zod";
 import { loginSchema } from "@/validator/auth_schema";
-import { AuthRequest } from "@/middleware/auth";
 import { prisma } from "lib/prisma";
-import { env } from "@/config/env_validation";
 
-async function login(req: AuthRequest, res: Response) {
+async function login(req: Request, res: Response) {
   try {
     const { email, password } = loginSchema.parse(req.body);
 
@@ -24,32 +21,22 @@ async function login(req: AuthRequest, res: Response) {
       },
     });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Invalid user name or password",key:"password" });
+      return res.status(401).json({ message: "Invalid user name or password", key: "password" });
     }
-    if (user.is_verified) {
-      return res.status(401).json({ message: "Please check your inbox to verify your email" ,key:"email"});
+    if (!user.is_verified) {
+      return res
+        .status(401)
+        .json({ message: "Please check your inbox to verify your email", key: "email" });
     }
 
-    const token = jwt.sign(
-      {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-      },
-      env.JWT_SECRET,
-      { expiresIn: "3h" },
-    );
+    req.session.userId = user.id;
+    req.session.role = user.role;
 
-    res.cookie("access_token", token, {
-      httpOnly: true, // 防 XSS
-      secure: false, // https 才要 true
-      sameSite: "strict", // 防 CSRF
-      maxAge: 60 * 60 * 1000 * 3, // 3h
+    return res.status(200).json({
+      message: "Login successful",
+      username: user.username,
+      role: user.role,
     });
-
-    return res
-      .status(200)
-      .json({ message: "Login successful", username: user.username, role: user.role, token });
   } catch (e) {
     // zod 進行驗證
     if (e instanceof ZodError) {
@@ -67,4 +54,30 @@ async function login(req: AuthRequest, res: Response) {
   }
 }
 
-export { login };
+async function me(req: Request, res: Response) {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  res.json({ userId: req.session.userId , role: req.session.role});
+}
+
+async function logout(req: Request, res: Response) {
+  // 刪除 server 端 session
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Session destroy error:", err);
+      return res.status(500).json({ message: "Logout failed" });
+    }
+
+    // 清掉瀏覽器 cookie
+    res.clearCookie("sid", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    return res.json({ message: "Logged out" });
+  });
+}
+
+export { login, logout, me };

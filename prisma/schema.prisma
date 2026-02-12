@@ -14,9 +14,9 @@ datasource db {
 }
 
 enum Role {
-  admin
-  cdc_member
-  non_cnc_member
+  ADMIN
+  CDC_MEMBER
+  NON_CDC_MEMBER
 }
 
 model User {
@@ -24,11 +24,18 @@ model User {
   email              String   @unique
   username           String
   password           String
-  role               Role     @default(non_cnc_member)
+  role               Role     @default(NON_CDC_MEMBER)
   verification_token String?
   is_verified        Boolean  @default(false)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt   DateTime
 }
 
 model Activity {
@@ -38,6 +45,6 @@ model Activity {
   start_time    String // hh:mm
   end_time      String // hh:mm
   qr_code       String   @unique @default(uuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 }

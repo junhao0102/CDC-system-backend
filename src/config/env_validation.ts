@@ -4,6 +4,7 @@ import { z } from "zod";
 // 定義 env 驗證格式
 const envSchema = z.object({
   JWT_SECRET: z.string().min(1),
+  SESSION_SECRET: z.string().min(1),
   FRONT_BASE_URL: z.string().url(),
   BACK_BASE_URL: z.string().url(),
   GMAIL_USER: z.string().email(),
