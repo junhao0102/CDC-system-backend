@@ -20,31 +20,44 @@ enum Role {
 }
 
 model User {
-  id                 Int      @id @default(autoincrement())
-  email              String   @unique
+  id                 Int           @id @default(autoincrement())
+  email              String        @unique
   username           String
   password           String
-  role               Role     @default(NON_CDC_MEMBER)
+  role               Role          @default(NON_CDC_MEMBER)
   verification_token String?
-  is_verified        Boolean  @default(false)
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
+  is_verified        Boolean       @default(false)
+  created_at         DateTime      @default(now())
+  updated_at         DateTime      @updatedAt
+  participates       Participate[]
 }
 
 model Session {
   id        String   @id
   sid       String   @unique
   data      String
-  expiresAt   DateTime
+  expiresAt DateTime
 }
 
 model Activity {
-  id            Int      @id @default(autoincrement())
+  id            Int           @id @default(autoincrement())
   activity_name String
   date          String // YYYY-MM-DD
   start_time    String // hh:mm
   end_time      String // hh:mm
-  qr_code       String   @unique @default(uuid())
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  qr_code       String        @unique @default(uuid())
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  participates  Participate[]
+}
+
+model Participate {
+  id          Int      @id @default(autoincrement())
+  activity_id Int
+  activity    Activity @relation(fields: [activity_id], references: [id])
+  user_id     Int
+  user        User     @relation(fields: [user_id], references: [id])
+  created_at  DateTime @default(now())
+
+  @@unique([activity_id, user_id])
 }

@@ -7,4 +7,13 @@ function Auth(req: Request, res: Response, next: NextFunction) {
   res.status(401).json({ message: "Unauthorized" });
 }
 
-export { Auth };
+function requireRole(role: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (req.session && req.session.role === role) {
+      return next();
+    }
+    res.status(403).json({ message: "Forbidden" });
+  };
+}
+
+export { Auth, requireRole };

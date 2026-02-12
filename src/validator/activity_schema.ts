@@ -27,4 +27,9 @@ const createActivitySchema = z
     },
   );
 
-export { createActivitySchema };
+const participateActivitySchema = z.object({
+  qr_code: z.string(),
+});
+
+
+export { createActivitySchema,participateActivitySchema };
