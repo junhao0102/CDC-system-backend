@@ -132,6 +132,10 @@ async function participateActivity(req: Request, res: Response) {
         console.error("Activity not found");
         return res.status(404).json({ message: "Activity not found" });
       }
+      if (e.code === "P2002") {
+        console.error("Already Sign in");
+        return res.status(409).json({ message: "Already Sign in" });
+      }
     }
 
     if (e instanceof Error) {
