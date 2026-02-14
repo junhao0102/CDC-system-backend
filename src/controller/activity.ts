@@ -100,7 +100,7 @@ async function deleteActivity(req: Request, res: Response) {
   }
 }
 
-async function participateActivity(req: Request, res: Response) {
+async function signIn(req: Request, res: Response) {
   try {
     const { qr_code } = participateActivitySchema.parse(req.params);
 
@@ -148,4 +148,4 @@ async function participateActivity(req: Request, res: Response) {
   }
 }
 
-export { createActivity, getActivity, deleteActivity, participateActivity };
+export { createActivity, getActivity, deleteActivity, signIn };
