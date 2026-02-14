@@ -58,7 +58,16 @@ async function me(req: Request, res: Response) {
   if (!req.session.userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-  res.json({ userId: req.session.userId, role: req.session.role });
+  const user = await prisma.user.findUnique({
+    where: {
+      id: req.session.userId,
+    },
+    select: {
+      username: true,
+      email: true,
+    },
+  });
+  res.json({ message: "Get me successful", user });
 }
 
 async function logout(req: Request, res: Response) {
