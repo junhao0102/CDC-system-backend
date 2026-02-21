@@ -36,7 +36,9 @@ async function getMyrecord(req: Request, res: Response) {
           },
         },
       }),
-      prisma.participate.count(),
+      prisma.participate.count({
+        where: { user_id: userId },
+      }),
     ]);
 
     const responseRecord = myRecords.map((record) => ({
@@ -56,11 +58,11 @@ async function getMyrecord(req: Request, res: Response) {
     });
   } catch (e) {
     if (e instanceof ZodError) {
-          const error = e.issues[0];
-          const message = error?.message;
-          const key = error?.path[0];
-          return res.status(400).json({ message, key });
-        }
+      const error = e.issues[0];
+      const message = error?.message;
+      const key = error?.path[0];
+      return res.status(400).json({ message, key });
+    }
     if (e instanceof Error) {
       console.error("Get activities error:", e.message);
       return res.status(500).json({ message: e.message });
