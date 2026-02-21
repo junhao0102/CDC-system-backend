@@ -2,18 +2,15 @@ import { Request, Response } from "express";
 import { ZodError } from "zod";
 import { Prisma } from "prisma/generated/client";
 import { prisma } from "lib/prisma";
-import {
-  createActivitySchema,
-  participateActivitySchema,
-  activityPaginationSchema,
-} from "@/validator/activity_schema";
+import { createActivitySchema, participateActivitySchema } from "@/validator/activity_schema";
+import { paginationSchema } from "@/validator/common_schema";
 import { idSchema } from "@/validator/common_schema";
 import crypto from "crypto";
 import { env } from "@/config/env_validation";
 
 async function getActivity(req: Request, res: Response) {
   try {
-    const { page } = activityPaginationSchema.parse(req.query);
+    const { page } = paginationSchema.parse(req.query);
     const PAGE_SIZE = env.DEFAULT_PAGE_SIZE;
     const skipValue = (page - 1) * PAGE_SIZE;
 

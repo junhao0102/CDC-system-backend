@@ -31,8 +31,4 @@ const participateActivitySchema = z.object({
   qr_code: z.string(),
 });
 
-const activityPaginationSchema = z.object({
-  page: z.coerce.number().min(1, "Page must be greater than 0"),
-});
-
-export { createActivitySchema, participateActivitySchema, activityPaginationSchema };
+export { createActivitySchema, participateActivitySchema };
