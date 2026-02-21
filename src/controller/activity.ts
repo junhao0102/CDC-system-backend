@@ -2,15 +2,48 @@ import { Request, Response } from "express";
 import { ZodError } from "zod";
 import { Prisma } from "prisma/generated/client";
 import { prisma } from "lib/prisma";
-import { createActivitySchema, participateActivitySchema } from "@/validator/activity_schema";
+import {
+  createActivitySchema,
+  participateActivitySchema,
+  activityPaginationSchema,
+} from "@/validator/activity_schema";
 import { idSchema } from "@/validator/common_schema";
 import crypto from "crypto";
+import { env } from "@/config/env_validation";
 
 async function getActivity(req: Request, res: Response) {
   try {
-    const activities = await prisma.activity.findMany();
-    res.status(201).json({ message: "Get activities successful", activities });
+    const { page } = activityPaginationSchema.parse(req.query);
+    const PAGE_SIZE = env.DEFAULT_PAGE_SIZE;
+    const skipValue = (page - 1) * PAGE_SIZE;
+
+    const [activities, totalCount] = await Promise.all([
+      prisma.activity.findMany({
+        skip: skipValue,
+        take: PAGE_SIZE,
+        orderBy: {
+          date: "desc",
+        },
+      }),
+      prisma.activity.count(),
+    ]);
+
+    res.status(201).json({
+      message: "Get activities successful",
+      rows: activities,
+      pagination: {
+        page,
+        page_size: PAGE_SIZE,
+        total_pages: Math.ceil(totalCount / PAGE_SIZE),
+      },
+    });
   } catch (e) {
+    if (e instanceof ZodError) {
+      const error = e.issues[0];
+      const message = error?.message;
+      const key = error?.path[0];
+      return res.status(400).json({ message, key });
+    }
     if (e instanceof Error) {
       console.error("Get activities error:", e.message);
       return res.status(500).json({ message: e.message });

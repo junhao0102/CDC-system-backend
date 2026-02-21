@@ -9,6 +9,7 @@ const envSchema = z.object({
   BACK_BASE_URL: z.string().url(),
   GMAIL_USER: z.string().email(),
   GMAIL_PASSWORD: z.string().min(1),
+  DEFAULT_PAGE_SIZE: z.coerce.number().min(1),
 });
 
 const _env = envSchema.safeParse(process.env);

@@ -2,7 +2,7 @@ import { Router } from "express";
 import userRouter from "@/routes/user";
 import authRouter from "@/routes/auth";
 import activityRouter from "@/routes/activity";
-import recordRouter from "@/routes/record"
+import recordRouter from "@/routes/record";
 
 const router = Router();
 
