@@ -5,7 +5,7 @@ const idSchema = z.object({
 });
 
 const paginationSchema = z.object({
-  page: z.coerce.number().min(1, "Page must be greater than 0"),
+  page: z.coerce.number().int().positive().default(1).catch(1),
 });
 
 export { idSchema, paginationSchema };

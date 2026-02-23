@@ -198,4 +198,63 @@ async function getTodayActivities(req: Request, res: Response) {
   }
 }
 
-export { createActivity, getActivity, deleteActivity, signIn, getTodayActivities };
+async function getRank(req: Request, res: Response) {
+  const { page } = paginationSchema.parse(req.query);
+  const PAGE_SIZE = env.DEFAULT_PAGE_SIZE;
+  const skipValue = (page - 1) * PAGE_SIZE;
+
+  try {
+    const [rank, totalCount] = await Promise.all([
+      prisma.user.findMany({
+        select: {
+          id: true,
+          username: true,
+          _count: {
+            select: { participates: true },
+          },
+        },
+        orderBy: {
+          participates: {
+            _count: "desc",
+          },
+        },
+        take: PAGE_SIZE,
+        skip: skipValue,
+      }),
+      prisma.user.count(),
+    ]);
+
+    const responseRank = rank.map((user) => {
+      return {
+        id: user.id,
+        username: user.username,
+        participates: user._count.participates,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Get rank successful",
+      rows: responseRank,
+      pagination: {
+        page,
+        page_size: PAGE_SIZE,
+        total_pages: Math.ceil(totalCount / PAGE_SIZE),
+      },
+    });
+  } catch (e) {
+    if (e instanceof ZodError) {
+      const error = e.issues[0];
+      const message = error?.message;
+      const key = error?.path[0];
+      return res.status(400).json({ message, key });
+    }
+    if (e instanceof Error) {
+      console.error(e.message);
+      return res.status(500).json({ message: e.message });
+    }
+    console.error("Unknown error");
+    return res.status(500).json({ message: "Unknown error" });
+  }
+}
+
+export { createActivity, getActivity, deleteActivity, signIn, getTodayActivities, getRank };
