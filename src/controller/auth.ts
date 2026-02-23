@@ -62,6 +62,7 @@ async function me(req: Request, res: Response) {
     select: {
       username: true,
       email: true,
+      role: true,
     },
   });
   res.json({ message: "Get me successful", user });

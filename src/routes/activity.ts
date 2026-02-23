@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createActivity, getActivity, deleteActivity, signIn } from "@/controller/activity";
+import { createActivity, getActivity, deleteActivity, signIn ,getTodayActivities} from "@/controller/activity";
 import { Auth, requireRole } from "@/middleware/auth";
 import { Role } from "prisma/generated/enums";
 
@@ -12,5 +12,7 @@ router.post("/", Auth, requireRole(Role.ADMIN), createActivity);
 router.delete("/:id", Auth, requireRole(Role.ADMIN), deleteActivity);
 
 router.post("/sign_in/:qr_code", Auth, signIn);
+
+router.get("/today_activity", Auth,requireRole(Role.ADMIN), getTodayActivities);
 
 export default router;

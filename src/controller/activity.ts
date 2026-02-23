@@ -178,4 +178,24 @@ async function signIn(req: Request, res: Response) {
   }
 }
 
-export { createActivity, getActivity, deleteActivity, signIn };
+async function getTodayActivities(req: Request, res: Response) {
+  try {
+    const today = new Date();
+    const date = today.toISOString().split("T")[0];
+    const activities = await prisma.activity.findMany({
+      where: {
+        date,
+      },
+    });
+    return res.status(200).json({ message: "Get today activity successful", activities });
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return res.status(500).json({ message: e.message });
+    }
+    console.error("Unknown error");
+    return res.status(500).json({ message: "Unknown error" });
+  }
+}
+
+export { createActivity, getActivity, deleteActivity, signIn, getTodayActivities };
