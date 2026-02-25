@@ -12,12 +12,15 @@ npx prisma db seed
 
 ## Development Commands
 ```bash
-# 啟動開發伺服器
-npm run dev   
+# 根據 schema.prisma 產生 Prisma Client
+npx prisma generate 
 
-# 使用 Prettier 格式化程式碼文件
-npm run format
+# 建立並同時套用資料庫遷移
+npx prisma migrate dev --name <migration name>
 
-# 開啟 GUI 瀏覽器查看/編輯資料庫內容
-npx prisma studio  
+# 刪除並重建資料庫
+npx prisma migrate reset
+
+# 部署資料庫遷移
+npx prisma migrate deploy
 ```
