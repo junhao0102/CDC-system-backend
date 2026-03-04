@@ -8,4 +8,8 @@ const registerUserSchema = z.object({
   role: z.nativeEnum(Role, "Invalid role"),
 });
 
-export { registerUserSchema };
+const updateRoleSchema = z.object({
+  role: z.nativeEnum(Role, "Invalid role"),
+});
+
+export { registerUserSchema, updateRoleSchema };

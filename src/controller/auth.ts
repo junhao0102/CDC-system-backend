@@ -30,6 +30,7 @@ async function login(req: Request, res: Response) {
     }
 
     req.session.userId = user.id;
+    req.session.username = user.username;
     req.session.role = user.role;
 
     return res.status(200).json({
@@ -55,6 +56,7 @@ async function login(req: Request, res: Response) {
 }
 
 async function me(req: Request, res: Response) {
+  console.log(req.session);
   const user = await prisma.user.findUnique({
     where: {
       id: req.session.userId,

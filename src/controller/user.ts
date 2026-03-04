@@ -4,10 +4,12 @@ import { ZodError } from "zod";
 import { prisma } from "lib/prisma";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { registerUserSchema } from "@/validator/user_schema";
+import { registerUserSchema, updateRoleSchema } from "@/validator/user_schema";
+import { idSchema, paginationSchema } from "@/validator/common_schema";
 import transporter from "@/utils/mail";
 import { env } from "@/config/env_validation";
 import { mailTemplate, statusTemplate } from "@/templates/mail";
+import { utcTimeToTaipeiTime } from "@/utils/time_formatter";
 
 async function registerUser(req: Request, res: Response) {
   try {
@@ -121,4 +123,106 @@ async function verifyUser(req: Request, res: Response) {
   }
 }
 
-export { registerUser, verifyUser };
+async function getAllusers(req: Request, res: Response) {
+  try {
+    const { page } = paginationSchema.parse(req.query);
+    const PAGE_SIZE = env.DEFAULT_PAGE_SIZE;
+    const skipValue = (page - 1) * PAGE_SIZE;
+
+    const [users, totalCount] = await Promise.all([
+      prisma.user.findMany({
+        skip: skipValue,
+        take: PAGE_SIZE,
+        orderBy: {
+          created_at: "desc",
+        },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          is_verified: true,
+          created_at: true,
+          updated_at: true,
+          updated_by: true,
+        },
+      }),
+      prisma.user.count(),
+    ]);
+
+    const responseUsers = users.map((user) => {
+      return {
+        ...user,
+        created_at_taipei_time: utcTimeToTaipeiTime(user.created_at),
+        updated_at_taipei_time: utcTimeToTaipeiTime(user.updated_at),
+      };
+    });
+
+    res.status(200).json({
+      message: "Get users successful",
+      rows: responseUsers,
+      pagination: {
+        page,
+        page_size: PAGE_SIZE,
+        total_pages: Math.ceil(totalCount / PAGE_SIZE),
+      },
+    });
+  } catch (e) {
+    if (e instanceof ZodError) {
+      const error = e.issues[0];
+      const message = error?.message;
+      const key = error?.path[0];
+      return res.status(400).json({ message, key });
+    }
+
+    if (e instanceof Error) {
+      console.error("Get activities error:", e.message);
+      return res.status(500).json({ message: e.message });
+    }
+
+    console.error("Unknown error");
+    return res.status(500).json({ message: "Unknown error" });
+  }
+}
+
+async function updateRole(req: Request, res: Response) {
+  try {
+    const username = req.session?.username;
+    const { id } = idSchema.parse(req.params);
+    const { role } = updateRoleSchema.parse(req.body);
+
+    const user = await prisma.user.update({
+      where: { id },
+      data: { role, updated_by: username },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+      },
+    });
+    res.status(200).json({ message: "Update role successful", user });
+  } catch (e) {
+    if (e instanceof ZodError) {
+      const error = e.issues[0];
+      const message = error?.message;
+      const key = error?.path[0];
+      return res.status(400).json({ message, key });
+    }
+
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === "P2025") {
+        console.error("User not found");
+        return res.status(404).json({ message: "User not found" });
+      }
+    }
+
+    if (e instanceof Error) {
+      console.error("Update role error:", e.message);
+      return res.status(500).json({ message: e.message });
+    }
+
+    console.error("Unknown error");
+    return res.status(500).json({ message: "Unknown error" });
+  }
+}
+
+export { registerUser, verifyUser, getAllusers, updateRole };
